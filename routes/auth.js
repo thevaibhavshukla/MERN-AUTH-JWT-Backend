@@ -8,130 +8,135 @@ const Token = require("../models/tokenModel");
 
 
 router.post("/register", async (req, res) => {
-    try {
-      const existingUser = await User.findOne({ email: req.body.email });
-      if (existingUser)
-        return res
-          .status(200)
-          .send({ success: false, message: "User Already Registered" });
-  
-      const password = req.body.password;
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      req.body.password = hashedPassword;
-      const newuser = new User(req.body);
-      const result = await newuser.save();
-      await sendEmail(result, "verifyemail");
-      res.status(200).send({
-        success: true,
-        message: "Registration successfull , Please verify your email",
-      });
-    } catch (error) {
-      console.log(error);
-      res.status(400).send(error);
-    }
-  });
+  try {
+    const existingUser = await User.findOne({ email: req.body.email });
+    if (existingUser)
+      return res
+        .status(200)
+        .send({ success: false, message: "User Already Registered" });
 
-  router.post("/login", async (req, res) => {
-    try {
-      const user = await User.findOne({
-        email: req.body.email,
-      });
-      if (user) {
-        const passwordsMached = await bcrypt.compare(
-          req.body.password,
-          user.password
-        );
-        if (passwordsMached) {
-          if (user.isVerified) {
-            const dataToBeSentToFrontend = {
-              _id: user._id,
-              email: user.email,
-              name: user.name,
-            };
-            const token = jwt.sign(dataToBeSentToFrontend, "SHEY", {
-              expiresIn: 60 * 60,
-            });
-            res.status(200).send({
-              success: true,
-              message: "User Login Successfull",
-              data: token,
-            });
-          } else {
-            res
-              .status(200)
-              .send({ success: false, message: "Email not verified" });
-          }
-        } else
-          res.status(200).send({ success: false, message: "Incorrect Password" });
-      } else {
-        res
-          .status(200)
-          .send({ success: false, message: "User Does Not Exists", data: null });
-      }
-    } catch (error) {
-      res.status(400).send(error);
+    const password = req.body.password;
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    req.body.password = hashedPassword;
+    const newuser = new User(req.body);
+    const result = await newuser.save();
+    await sendEmail(result, "verifyemail");
+    res.status(200).send({
+      success: true,
+      message: "Registration successfull , Please verify your email",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).send(error);
+  }
+});
+
+router.post("/login", async (req, res) => {
+  try {
+    const user = await User.findOne({
+      email: req.body.email,
+    });
+    if (user) {
+      const passwordsMached = await bcrypt.compare(
+        req.body.password,
+        user.password
+      );
+      if (passwordsMached) {
+        if (user.isVerified) {
+          const dataToBeSentToFrontend = {
+            _id: user._id,
+            email: user.email,
+            name: user.name,
+          };
+          const token = jwt.sign(dataToBeSentToFrontend, "SHEY", {
+            expiresIn: 60 * 60,
+          });
+          res.status(200).send({
+            success: true,
+            message: "User Login Successfull",
+            data: token,
+          });
+        } else {
+          res
+            .status(200)
+            .send({ success: false, message: "Email not verified" });
+        }
+      } else
+        res.status(200).send({ success: false, message: "Incorrect Password" });
+    } else {
+      res
+        .status(200)
+        .send({ success: false, message: "User Does Not Exists", data: null });
     }
-  });
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.get("/send-password-reset-link", async (req, res) => {
+  res.send("send-password-reset-link")
+});
 
 
 router.post("/send-password-reset-link", async (req, res) => {
-    try {
-        const result = await User.findOne({ email: req.body.email });
-        await sendEmail(result, "resetpassword");
-        res.send({
-            success: true,
-            message: "Password reset link sent to your email successfully",
-        });
-    } catch (error) {
-        res.status(500).send(error);
-    }
+  res.send("post-send-password-reset-link")
+  // try {
+  //   const result = await User.findOne({ email: req.body.email });
+  //   await sendEmail(result, "resetpassword");
+  //   res.send({
+  //     success: true,
+  //     message: "Password reset link sent to your email successfully",
+  //   });
+  // } catch (error) {
+  //   res.status(500).send(error);
+  // }
 });
 
 router.post("/reset-password", async (req, res) => {
-    try {
+  try {
 
-        const tokenData = await Token.findOne({ token: req.body.token });
-        // console.log("tokendata-------", tokenData)
-        if (tokenData) {
-            const password = req.body.password;
-            // console.log("password--", password)
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
-            // console.log("hashedpassword--", hashedPassword)
-            // await User.findOneAndUpdate({ _id: tokenData.userid, password: hashedPassword });
-            await User.findByIdAndUpdate(tokenData.userid, {password : hashedPassword});
-            await Token.findOneAndDelete({ token: req.body.token });
-            res.send({ success: true, message: "Password reset successfull" });
-        } else {
-            res.send({ success: false, message: "Invalid token" });
-        }
-    } catch (error) {
-      console.log(error)
-        res.status(500).send(error);
+    const tokenData = await Token.findOne({ token: req.body.token });
+    // console.log("tokendata-------", tokenData)
+    if (tokenData) {
+      const password = req.body.password;
+      // console.log("password--", password)
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      // console.log("hashedpassword--", hashedPassword)
+      // await User.findOneAndUpdate({ _id: tokenData.userid, password: hashedPassword });
+      await User.findByIdAndUpdate(tokenData.userid, { password: hashedPassword });
+      await Token.findOneAndDelete({ token: req.body.token });
+      res.send({ success: true, message: "Password reset successfull" });
+    } else {
+      res.send({ success: false, message: "Invalid token" });
     }
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error);
+  }
 });
 
 router.post("/verifyemail", async (req, res) => {
-    try {
+  try {
 
-        const tokenData = await Token.findOne({ token: req.body.token });
-        if (tokenData) {
-          ////////////////////////////////////////////////////////////////
-          // userdata = await User.findById({ _id: tokenData.userid});
-          // console.log(userdata)
-          ///////////////////////////////////////////////////////////////////
-             await User.findByIdAndUpdate(tokenData.userid, {isVerified : true});
-             
-            await Token.findOneAndDelete({ token: req.body.token });
-            res.send({ success: true, message: "Email Verified Successlly" });
-        } else {
-            res.send({ success: false, message: "Invalid token" });
-        }
-    } catch (error) {
-      console.log(error)
-        res.status(500).send(error);
+    const tokenData = await Token.findOne({ token: req.body.token });
+    if (tokenData) {
+      ////////////////////////////////////////////////////////////////
+      // userdata = await User.findById({ _id: tokenData.userid});
+      // console.log(userdata)
+      ///////////////////////////////////////////////////////////////////
+      await User.findByIdAndUpdate(tokenData.userid, { isVerified: true });
+
+      await Token.findOneAndDelete({ token: req.body.token });
+      res.send({ success: true, message: "Email Verified Successlly" });
+    } else {
+      res.send({ success: false, message: "Invalid token" });
     }
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error);
+  }
 });
 
 
