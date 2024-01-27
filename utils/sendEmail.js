@@ -27,6 +27,7 @@ module.exports = async (user, mailType) => {
     let emailContent, mailOptions;
     if (mailType == "verifyemail") {
       emailContent = `<div><h1>Please click on the below link to verify your email address</h1> <a href="https://mern-auth-jwt-frontend.onrender.com/verifyemail/${encryptedToken}">${encryptedToken}</a>  </div>`;
+      // emailContent = `<div><h1>Please click on the below link to verify your email address</h1> <a href="http://localhost:3000/verifyemail/${encryptedToken}">${encryptedToken}</a>  </div>`;
 
       mailOptions = {
         from: "sheylearnings@gmail.com",
@@ -36,6 +37,7 @@ module.exports = async (user, mailType) => {
       };
     } else {
       emailContent = `<div><h1>Please click on the below link to reset your password</h1> <a href="https://mern-auth-jwt-frontend.onrender.com/resetpassword/${encryptedToken}">${encryptedToken}</a>  </div>`;
+      // emailContent = `<div><h1>Please click on the below link to reset your password</h1> <a href="http://localhost:3000/resetpassword/${encryptedToken}">${encryptedToken}</a>  </div>`;
 
       mailOptions = {
         from: "sheylearnings@gmail.com",

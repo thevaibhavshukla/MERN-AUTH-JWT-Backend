@@ -92,13 +92,13 @@ router.post("/reset-password", async (req, res) => {
     try {
 
         const tokenData = await Token.findOne({ token: req.body.token });
-        console.log("tokendata-------", tokenData)
+        // console.log("tokendata-------", tokenData)
         if (tokenData) {
             const password = req.body.password;
-            console.log("password--", password)
+            // console.log("password--", password)
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
-            console.log("hashedpassword--", hashedPassword)
+            // console.log("hashedpassword--", hashedPassword)
             // await User.findOneAndUpdate({ _id: tokenData.userid, password: hashedPassword });
             await User.findByIdAndUpdate(tokenData.userid, {password : hashedPassword});
             await Token.findOneAndDelete({ token: req.body.token });
