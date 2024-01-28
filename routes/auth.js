@@ -74,23 +74,19 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/send-password-reset-link", async (req, res) => {
-  res.send("send-password-reset-link")
-});
 
 
 router.post("/send-password-reset-link", async (req, res) => {
-  res.send("post-send-password-reset-link")
-  // try {
-  //   const result = await User.findOne({ email: req.body.email });
-  //   await sendEmail(result, "resetpassword");
-  //   res.send({
-  //     success: true,
-  //     message: "Password reset link sent to your email successfully",
-  //   });
-  // } catch (error) {
-  //   res.status(500).send(error);
-  // }
+  try {
+    const result = await User.findOne({ email: req.body.email });
+    await sendEmail(result, "resetpassword");
+    res.send({
+      success: true,
+      message: "Password reset link sent to your email successfully",
+    });
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 
 router.post("/reset-password", async (req, res) => {
